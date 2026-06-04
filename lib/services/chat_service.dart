@@ -178,7 +178,9 @@ class ChatService {
           onMessagesUpdated?.call();
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors loading chat updates.
+    }
   }
 
   Future<void> loadConversations() async {
@@ -230,7 +232,9 @@ class ChatService {
           _conversations[0].time = convoMessages.last.time;
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors loading conversation history.
+    }
   }
 
   void sendMessage(int conversationIndex, String text) async {
@@ -266,12 +270,15 @@ class ChatService {
     }
 
     String? attachmentType;
-    if (text.contains('[Photo') || text.contains('📷'))
+    if (text.contains('[Photo') || text.contains('📷')) {
       attachmentType = 'photo';
-    if (text.contains('[Document') || text.contains('📄'))
+    }
+    if (text.contains('[Document') || text.contains('📄')) {
       attachmentType = 'document';
-    if (text.contains('[Location') || text.contains('📍'))
+    }
+    if (text.contains('[Location') || text.contains('📍')) {
       attachmentType = 'location';
+    }
 
     _conversations[conversationIndex].messages.add(ChatMessage(
         text: text,
@@ -288,7 +295,9 @@ class ChatService {
         await _supabase
             .from('messages')
             .insert({'sender_id': user.id, 'text': text});
-      } catch (e) {}
+      } catch (e) {
+        // Ignore insert failures for chat messages.
+      }
     }
 
     if (_agentConnected) {
@@ -452,15 +461,16 @@ class ChatService {
     final replyTime =
         '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
     String msg = '';
-    if (reply.contains('Call Now') || reply.contains('📞'))
+    if (reply.contains('Call Now') || reply.contains('📞')) {
       msg =
           "📞 Reach us at:\n\n**+234 800 GEESTRIP**\n\n24/7 phone support available.";
-    else if (reply.contains('Email') || reply.contains('📧'))
+    } else if (reply.contains('Email') || reply.contains('📧')) {
       msg =
           "📧 Email us at:\n\n**support@geestrip.com**\n\nWe'll respond within 2 hours.";
-    else if (reply.contains('WhatsApp') || reply.contains('💬'))
+    } else if (reply.contains('WhatsApp') || reply.contains('💬')) {
       msg =
           "💬 WhatsApp us:\n\n**+234 800 GEESTRIP**\n\nMessage us for instant chat support!";
+    }
     if (msg.isNotEmpty) {
       _conversations[conversationIndex].messages.add(ChatMessage(
           text: msg,
@@ -503,7 +513,8 @@ class ChatService {
     final lower = message.toLowerCase();
     // Try to detect structured hotel/service queries from a single message
     final hotelParsed = _parseHotelQuery(message);
-    if (hotelParsed.isNotEmpty && _containsAny(lower, ['hotel', 'stay', 'room', 'lodge'])) {
+    if (hotelParsed.isNotEmpty &&
+        _containsAny(lower, ['hotel', 'stay', 'room', 'lodge'])) {
       return {
         'text': "Got it — searching for hotels matching your request.",
         'quickReplies': ['Refine Search', '🏠 Back to Menu'],
@@ -517,7 +528,7 @@ class ChatService {
       'good morning',
       'good evening',
       'good afternoon'
-    ]))
+    ])) {
       return {
         'text': _getGreeting(),
         'quickReplies': [
@@ -529,14 +540,16 @@ class ChatService {
           '🤝 Companion'
         ]
       };
-    if (_containsAny(lower, ['hotel', 'stay', 'room', 'lodge']))
+    }
+    if (_containsAny(lower, ['hotel', 'stay', 'room', 'lodge'])) {
       return {
         'text': "Great! Let's find you the perfect place to stay. 🏨",
         'quickReplies': ['🔍 Start Hotel Search', '🏠 Back to Menu'],
         'action': {'route': '/concierge', 'extra': 'stay'}
       };
+    }
     if (_containsAny(
-        lower, ['flight', 'fly', 'plane', 'airline', 'ticket', 'airport']))
+        lower, ['flight', 'fly', 'plane', 'airline', 'ticket', 'airport'])) {
       return {
         'text': "Let's get you flying! ✈️",
         'quickReplies': ['🔍 Search Flights', '🏠 Back to Menu'],
@@ -545,8 +558,9 @@ class ChatService {
           'extra': {'type': 'flights', 'name': 'Flight Booking'}
         }
       };
+    }
     if (_containsAny(
-        lower, ['shuttle', 'ride', 'taxi', 'transport', 'uber', 'bolt']))
+        lower, ['shuttle', 'ride', 'taxi', 'transport', 'uber', 'bolt'])) {
       return {
         'text': "Need a ride? 🚗",
         'quickReplies': [
@@ -559,8 +573,9 @@ class ChatService {
           'extra': {'type': 'shuttle', 'name': 'Shuttle Service'}
         }
       };
+    }
     if (_containsAny(
-        lower, ['tour', 'explore', 'sightseeing', 'guide', 'museum']))
+        lower, ['tour', 'explore', 'sightseeing', 'guide', 'museum'])) {
       return {
         'text': "Ready to explore? 🗺️",
         'quickReplies': [
@@ -573,7 +588,8 @@ class ChatService {
           'extra': {'type': 'tours', 'name': 'City Tours'}
         }
       };
-    if (_containsAny(lower, ['companion', 'date', 'buddy']))
+    }
+    if (_containsAny(lower, ['companion', 'date', 'buddy'])) {
       return {
         'text': "I can help find a companion. 🤝",
         'quickReplies': [
@@ -586,8 +602,9 @@ class ChatService {
           'extra': {'type': 'companion', 'name': 'Travel Companion'}
         }
       };
+    }
     if (_containsAny(
-        lower, ['dining', 'restaurant', 'food', 'cuisine', 'hungry']))
+        lower, ['dining', 'restaurant', 'food', 'cuisine', 'hungry'])) {
       return {
         'text': "Let's book a dining experience! 🍽️",
         'quickReplies': ['🍝 Italian', '🍣 Japanese', '🏠 Back to Menu'],
@@ -596,7 +613,9 @@ class ChatService {
           'extra': {'type': 'dining', 'name': 'Dining Reservations'}
         }
       };
-    if (_containsAny(lower, ['help', 'emergency', 'urgent', 'stuck', 'unsafe']))
+    }
+    if (_containsAny(
+        lower, ['help', 'emergency', 'urgent', 'stuck', 'unsafe'])) {
       return {
         'text': "I'm here for you! 🛡️",
         'quickReplies': [
@@ -607,7 +626,8 @@ class ChatService {
         ],
         'action': {'route': '/safe-stay'}
       };
-    if (_containsAny(lower, ['booking', 'cancel', 'refund', 'reservation']))
+    }
+    if (_containsAny(lower, ['booking', 'cancel', 'refund', 'reservation'])) {
       return {
         'text': "Manage your bookings! 📋",
         'quickReplies': [
@@ -617,14 +637,16 @@ class ChatService {
         ],
         'action': {'route': '/my-bookings'}
       };
-    if (_containsAny(lower, ['partner', 'host', 'rent out']))
+    }
+    if (_containsAny(lower, ['partner', 'host', 'rent out'])) {
       return {
         'text': "Partner with GeesTrip! 🏢",
         'quickReplies': ['📝 Register Now', '🏠 Back to Menu'],
         'action': {'route': '/partner-register'}
       };
+    }
     if (_containsAny(
-        lower, ['profile', 'account', 'settings', 'language', 'payment']))
+        lower, ['profile', 'account', 'settings', 'language', 'payment'])) {
       return {
         'text': "Manage your account from Profile! 👤",
         'quickReplies': [
@@ -635,7 +657,8 @@ class ChatService {
         ],
         'action': {'route': '/profile'}
       };
-    if (_containsAny(lower, ['explore', 'browse', 'see all']))
+    }
+    if (_containsAny(lower, ['explore', 'browse', 'see all'])) {
       return {
         'text': "Let's explore! 🔍",
         'quickReplies': [
@@ -646,7 +669,8 @@ class ChatService {
         ],
         'action': {'route': '/explore'}
       };
-    if (_containsAny(lower, ['price', 'cost', 'budget', 'discount']))
+    }
+    if (_containsAny(lower, ['price', 'cost', 'budget', 'discount'])) {
       return {
         'text': "Prices vary by location and season. 💰",
         'quickReplies': [
@@ -656,7 +680,8 @@ class ChatService {
           '🏠 Back to Menu'
         ]
       };
-    if (_containsAny(lower, ['thank', 'thanks', 'appreciate', 'great']))
+    }
+    if (_containsAny(lower, ['thank', 'thanks', 'appreciate', 'great'])) {
       return {
         'text': "You're welcome! 😊",
         'quickReplies': [
@@ -666,6 +691,7 @@ class ChatService {
           '🏠 Back to Menu'
         ]
       };
+    }
     return {
       'text': "Here are the most popular things I can help with:",
       'quickReplies': [
@@ -705,8 +731,11 @@ class ChatService {
     }
 
     // Budget: look for patterns like 'under 50k', 'under ₦50k', '50k', '$120'
-    final budgetMatch = RegExp(r'under\s*\D*([0-9]{1,6})k?', caseSensitive: false).firstMatch(lower) ??
-        RegExp(r'\b(?:\$|₦)?\s*([0-9]{2,6})k?\b', caseSensitive: false).firstMatch(lower);
+    final budgetMatch =
+        RegExp(r'under\s*\D*([0-9]{1,6})k?', caseSensitive: false)
+                .firstMatch(lower) ??
+            RegExp(r'\b(?:\$|₦)?\s*([0-9]{2,6})k?\b', caseSensitive: false)
+                .firstMatch(lower);
     if (budgetMatch != null) {
       var raw = budgetMatch.group(1) ?? '';
       if (raw.isNotEmpty) {
@@ -719,7 +748,17 @@ class ChatService {
 
     // Amenities: check for common keywords
     final amenities = <String>[];
-    final amenKeywords = ['pool', 'wifi', 'gym', 'spa', 'airport', 'shuttle', 'breakfast', 'restaurant', 'parking'];
+    final amenKeywords = [
+      'pool',
+      'wifi',
+      'gym',
+      'spa',
+      'airport',
+      'shuttle',
+      'breakfast',
+      'restaurant',
+      'parking'
+    ];
     for (final k in amenKeywords) {
       if (lower.contains(k)) amenities.add(k);
     }
