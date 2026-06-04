@@ -315,7 +315,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     // Ensure indices are valid
     if (_filteredHotels.isNotEmpty) {
-      _selectedHotelIndex = _hotels.indexOf(_filteredHotels.first);
+      final firstHotel = _filteredHotels.first;
+      _selectedHotelIndex = _hotels.indexWhere((h) =>
+          h['name'] == firstHotel['name'] &&
+          h['location'] == firstHotel['location']);
+      if (_selectedHotelIndex < 0) _selectedHotelIndex = 0;
       _selectedRoomIndex = 0;
     }
     setState(() {});

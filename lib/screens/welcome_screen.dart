@@ -137,6 +137,18 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           .fadeIn(duration: 400.ms, delay: 600.ms),
                     ),
                     const SizedBox(height: 24),
+                    _buildFeaturedPropertiesSection(context)
+                        .animate()
+                        .fadeIn(duration: 380.ms, delay: 680.ms),
+                    const SizedBox(height: 18),
+                    _buildPopularServicesSection(context)
+                        .animate()
+                        .fadeIn(duration: 380.ms, delay: 760.ms),
+                    const SizedBox(height: 18),
+                    _buildPopularPlacesSection(context)
+                        .animate()
+                        .fadeIn(duration: 380.ms, delay: 840.ms),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -1871,5 +1883,538 @@ class _GuardianChip extends StatelessWidget {
                   fontSize: 9,
                   fontWeight: FontWeight.w500))
         ]));
+  }
+}
+
+// Featured Properties & Popular Services
+
+Widget _buildFeaturedPropertiesSection(BuildContext context) {
+  final properties = [
+    {
+      'name': 'Serenity Suites',
+      'location': 'Lagos',
+      'price': '\$120/night',
+      'rating': 4.8,
+      'imageUrl':
+          'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80'
+    },
+    {
+      'name': 'Ocean View Hotel',
+      'location': 'Accra',
+      'price': '\$85/night',
+      'rating': 4.6,
+      'imageUrl':
+          'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=800&q=80'
+    },
+    {
+      'name': 'Royal Palace',
+      'location': 'Abuja',
+      'price': '\$200/night',
+      'rating': 4.9,
+      'imageUrl':
+          'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'
+    },
+    {
+      'name': 'Garden Inn',
+      'location': 'Lagos',
+      'price': '\$75/night',
+      'rating': 4.5,
+      'imageUrl':
+          'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=800&q=80'
+    },
+  ];
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Featured Properties',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
+          GestureDetector(
+            onTap: () => context.push('/properties'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12)),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('View All',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary)),
+                  SizedBox(width: 4),
+                  Icon(LucideIcons.arrowRight,
+                      color: AppColors.primary, size: 14)
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 14),
+      SizedBox(
+        height: 240,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: 8),
+          itemCount: properties.length,
+          itemBuilder: (context, index) {
+            final p = properties[index];
+            return Padding(
+              padding: EdgeInsets.only(
+                  right: index == properties.length - 1 ? 0 : 14),
+              child: _PropertyCard(
+                  name: p['name'] as String,
+                  location: p['location'] as String,
+                  price: p['price'] as String,
+                  rating: (p['rating'] as double),
+                  imageUrl: p['imageUrl'] as String,
+                  onTap: () => context.push('/property-detail', extra: p)),
+            );
+          },
+        ),
+      ),
+    ]),
+  );
+}
+
+Widget _buildPopularServicesSection(BuildContext context) {
+  final services = [
+    {
+      'title': 'Lagos Airport Transfer',
+      'price': '\$25',
+      'icon': LucideIcons.car,
+    },
+    {
+      'title': 'Victoria Island City Tour',
+      'price': '\$40',
+      'icon': LucideIcons.map,
+    },
+    {
+      'title': 'Top-Rated Event Companion',
+      'price': 'from \$80/hr',
+      'icon': LucideIcons.users,
+    },
+  ];
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Popular Services',
+          style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary)),
+      const SizedBox(height: 14),
+      SizedBox(
+        height: 150,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: 8),
+          itemCount: services.length,
+          itemBuilder: (context, index) {
+            final s = services[index];
+            return Padding(
+              padding:
+                  EdgeInsets.only(right: index == services.length - 1 ? 0 : 14),
+              child: _PopularServiceCard(
+                icon: s['icon'] as IconData,
+                title: s['title'] as String,
+                price: s['price'] as String,
+                gradient: const [Color(0xFF1F3BB3), Color(0xFF3B5CF6)],
+                onBook: () => context.push('/service-chat', extra: s),
+              ),
+            );
+          },
+        ),
+      ),
+    ]),
+  );
+}
+
+Widget _buildPopularPlacesSection(BuildContext context) {
+  final places = [
+    {
+      'name': 'Jabi Lake Mall',
+      'subtitle': 'Shopping, dining & waterfront strolls',
+      'route': '/explore',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80',
+      'extra': {'city': 'Abuja', 'place': 'Jabi Lake Mall'}
+    },
+    {
+      'name': 'Millennium Park',
+      'subtitle': 'Lush green space and city skyline views',
+      'route': '/explore',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=800&q=80',
+      'extra': {'city': 'Abuja', 'place': 'Millennium Park'}
+    },
+    {
+      'name': 'Abuja Arts & Crafts Village',
+      'subtitle': 'Local markets, galleries & souvenirs',
+      'route': '/explore',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+      'extra': {'city': 'Abuja', 'place': 'Arts & Crafts Village'}
+    },
+  ];
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Popular Places to Explore',
+          style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary)),
+      const SizedBox(height: 14),
+      SizedBox(
+        height: 310,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: 8),
+          itemCount: places.length,
+          itemBuilder: (context, index) {
+            final item = places[index];
+            return Padding(
+              padding:
+                  EdgeInsets.only(right: index == places.length - 1 ? 0 : 14),
+              child: _PopularPlaceCard(
+                title: item['name'] as String,
+                subtitle: item['subtitle'] as String,
+                imageUrl: item['imageUrl'] as String,
+                onTap: () =>
+                    context.push(item['route'] as String, extra: item['extra']),
+              ),
+            );
+          },
+        ),
+      ),
+    ]),
+  );
+}
+
+class _PropertyCard extends StatelessWidget {
+  final String name;
+  final String location;
+  final String price;
+  final double rating;
+  final String imageUrl;
+  final VoidCallback onTap;
+
+  const _PropertyCard(
+      {required this.name,
+      required this.location,
+      required this.price,
+      required this.rating,
+      required this.imageUrl,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 240,
+        height: 250,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 16,
+                offset: const Offset(0, 8)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+              ),
+              child: SizedBox(
+                height: 140,
+                width: double.infinity,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: AppColors.bgPrimary,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: AppColors.bgPrimary,
+                    child: const Center(
+                      child: Icon(LucideIcons.image,
+                          color: AppColors.textMuted, size: 28),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name,
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary)),
+                    const SizedBox(height: 6),
+                    Row(children: [
+                      const Icon(LucideIcons.mapPin,
+                          size: 12, color: AppColors.textMuted),
+                      const SizedBox(width: 6),
+                      Text(location,
+                          style: const TextStyle(color: AppColors.textMuted)),
+                    ]),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(price,
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w800)),
+                        Row(children: [
+                          const Icon(LucideIcons.star,
+                              size: 14, color: Color(0xFFFFD166)),
+                          const SizedBox(width: 6),
+                          Text(rating.toString(),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700))
+                        ])
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PopularServiceCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String price;
+  final List<Color> gradient;
+  final VoidCallback onBook;
+
+  const _PopularServiceCard(
+      {required this.icon,
+      required this.title,
+      required this.price,
+      required this.gradient,
+      required this.onBook});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+            colors: gradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+              color: gradient.first.withOpacity(0.18),
+              blurRadius: 14,
+              offset: const Offset(0, 8))
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(children: [
+        Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: Colors.white, size: 26)),
+        const SizedBox(width: 14),
+        Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+              Text(title,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800)),
+              const SizedBox(height: 6),
+              Text(price,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13))
+            ])),
+        GestureDetector(
+          onTap: onBook,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: const Text('Book Now',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        )
+      ]),
+    );
+  }
+}
+
+class _PopularPlaceCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String imageUrl;
+  final VoidCallback onTap;
+
+  const _PopularPlaceCard(
+      {required this.title,
+      required this.subtitle,
+      required this.imageUrl,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 260,
+        height: 280,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 8)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+              ),
+              child: SizedBox(
+                height: 160,
+                width: double.infinity,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: AppColors.bgPrimary,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: AppColors.bgPrimary,
+                    child: const Center(
+                      child: Icon(LucideIcons.image,
+                          color: AppColors.textMuted, size: 28),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.16),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(LucideIcons.mapPin,
+                            color: AppColors.primary, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('Abuja',
+                          style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(title,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary)),
+                  const SizedBox(height: 8),
+                  Text(subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textMuted,
+                          height: 1.4)),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12)),
+                    child: const Text('Explore',
+                        style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13)),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }

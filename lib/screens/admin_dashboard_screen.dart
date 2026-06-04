@@ -254,6 +254,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   count: _bookings.length,
                   isActive: _activeTab == 5,
                   onTap: () => setState(() => _activeTab = 5)),
+              const SizedBox(width: 8),
+              _TabChip(
+                  label: 'Homepage',
+                  count: 3,
+                  isActive: _activeTab == 6,
+                  onTap: () => setState(() => _activeTab = 6)),
             ]),
           ),
           Expanded(
@@ -270,7 +276,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ? _buildActiveChatsList()
                                 : _activeTab == 4
                                     ? _buildCmsEntriesList()
-                                    : _buildBookingsList(),
+                                    : _activeTab == 5
+                                        ? _buildBookingsList()
+                                        : _buildHomepageTab(),
           ),
         ]),
       ),
@@ -818,6 +826,289 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 }),
       )
     ]);
+  }
+
+  Widget _buildHomepageTab() {
+    final featuredProperties = _properties.take(4).toList();
+    final popularServices = ContentService()
+        .getMergedServiceEntries(
+          _cmsEntries
+              .where((entry) => entry['section']?.toString() == 'services')
+              .toList(),
+        )
+        .take(3)
+        .toList();
+    final popularPlaces = _cmsEntries
+        .where((entry) => entry['section']?.toString() == 'pages')
+        .take(3)
+        .toList();
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Homepage Preview',
+              style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
+          const SizedBox(height: 16),
+          _buildHomepageSectionPreview(
+            title: 'Featured Properties',
+            description: 'These properties appear on the app welcome screen.',
+            child: featuredProperties.isEmpty
+                ? _buildHomepageEmptyState('No featured properties available.',
+                    'Add or activate properties in the Properties tab.')
+                : SizedBox(
+                    height: 250,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: featuredProperties.length,
+                      itemBuilder: (context, index) {
+                        final property = featuredProperties[index];
+                        return Padding(
+                          padding: EdgeInsets.only(
+                              right: index == featuredProperties.length - 1
+                                  ? 0
+                                  : 14),
+                          child: _buildHomepagePropertyCard(property),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 20),
+          _buildHomepageSectionPreview(
+            title: 'Popular Services',
+            description:
+                'Service cards shown on the homepage can be edited in CMS.',
+            child: popularServices.isEmpty
+                ? _buildHomepageEmptyState('No service entries available.',
+                    'Add entries in the Content tab under services.')
+                : SizedBox(
+                    height: 160,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: popularServices.length,
+                      itemBuilder: (context, index) {
+                        final service = popularServices[index];
+                        return Padding(
+                          padding: EdgeInsets.only(
+                              right:
+                                  index == popularServices.length - 1 ? 0 : 14),
+                          child: _buildHomepageServiceCard(service),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 20),
+          _buildHomepageSectionPreview(
+            title: 'Popular Places to Explore',
+            description:
+                'Page entries used by the place cards on the homepage.',
+            child: popularPlaces.isEmpty
+                ? _buildHomepageEmptyState('No place entries available.',
+                    'Add entries in the Content tab under pages.')
+                : SizedBox(
+                    height: 160,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: popularPlaces.length,
+                      itemBuilder: (context, index) {
+                        final place = popularPlaces[index];
+                        return Padding(
+                          padding: EdgeInsets.only(
+                              right:
+                                  index == popularPlaces.length - 1 ? 0 : 14),
+                          child: _buildHomepagePlaceCard(place),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomepageSectionPreview(
+      {required String title,
+      required String description,
+      required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary)),
+                  const SizedBox(height: 4),
+                  Text(description,
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                setState(() => _activeTab = 0);
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12)),
+                child: const Text('Edit',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        child,
+      ],
+    );
+  }
+
+  Widget _buildHomepageEmptyState(String title, String subtitle) {
+    return Container(
+      width: 260,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          color: AppColors.bgWhite,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          Text(subtitle,
+              style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomepagePropertyCard(Map<String, dynamic> property) {
+    final imageUrl = property['image']?.toString() ?? '';
+    return Container(
+      width: 240,
+      decoration: BoxDecoration(
+          color: AppColors.bgWhite,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 6))
+          ]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+          child: imageUrl.isNotEmpty
+              ? Image.network(imageUrl,
+                  width: double.infinity, height: 120, fit: BoxFit.cover)
+              : Container(
+                  width: double.infinity,
+                  height: 120,
+                  color: AppColors.bgPrimary,
+                  child: const Icon(LucideIcons.image,
+                      color: AppColors.textMuted, size: 28)),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(14),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(property['name']?.toString() ?? 'Unnamed property',
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary)),
+            const SizedBox(height: 6),
+            Text(property['location']?.toString() ?? '',
+                style:
+                    const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+          ]),
+        )
+      ]),
+    );
+  }
+
+  Widget _buildHomepageServiceCard(Map<String, dynamic> service) {
+    return Container(
+      width: 220,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          color: AppColors.bgWhite,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 6))
+          ]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(service['title']?.toString() ?? 'Service',
+            style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary)),
+        const SizedBox(height: 6),
+        Text(service['subtitle']?.toString() ?? '',
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+      ]),
+    );
+  }
+
+  Widget _buildHomepagePlaceCard(Map<String, dynamic> place) {
+    return Container(
+      width: 220,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          color: AppColors.bgWhite,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 6))
+          ]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(place['title']?.toString() ?? 'Place to Explore',
+            style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary)),
+        const SizedBox(height: 6),
+        Text(place['subtitle']?.toString() ?? place['body']?.toString() ?? '',
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+      ]),
+    );
   }
 
   Future<void> _showCmsEntryDialog({
