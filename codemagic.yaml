@@ -6,6 +6,9 @@ workflows:
       flutter: stable
       xcode: latest
     scripts:
+      - name: Clean before build
+        script: |
+          rm -rf build
       - name: Install dependencies
         script: |
           flutter pub get
