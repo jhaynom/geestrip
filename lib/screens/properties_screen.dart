@@ -31,7 +31,10 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
         child: FutureBuilder<List<Map<String, dynamic>>>(
           future: _propertiesFuture,
           builder: (context, snapshot) {
-            final properties = snapshot.data;
+            final serverProperties = snapshot.data;
+            final properties = (serverProperties != null && serverProperties.isNotEmpty)
+                ? serverProperties
+                : _getProperties();
             return Stack(
               children: [
                 Column(

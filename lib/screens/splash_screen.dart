@@ -38,8 +38,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Initialize video
     _initializeVideo();
 
-    // Fallback: navigate after 6 seconds
-    Future.delayed(6.seconds, () {
+    // Fallback: navigate after 8 seconds to match the video length
+    Future.delayed(8.seconds, () {
       if (mounted) {
         _navigateToNext();
       }

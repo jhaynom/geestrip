@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen>
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      if (mounted) context.go('/');
+      if (mounted) context.go('/splash');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

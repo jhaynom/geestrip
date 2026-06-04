@@ -280,7 +280,7 @@ class _ConciergeChatScreenState extends State<ConciergeChatScreen> {
     final text = _inputController.text.trim();
     if (text.isEmpty) return;
 
-    if (_editingIndex != null) {
+    if (_editingIndex != null && _editingIndex! >= 0 && _editingIndex! < _questions.length) {
       final key = _questions[_editingIndex!]['key'];
       _answers[key] = text;
       _addUserMessage(text);
@@ -296,6 +296,10 @@ class _ConciergeChatScreenState extends State<ConciergeChatScreen> {
         _scrollDown();
       });
       return;
+    }
+
+    if (_step < 0 || _step >= _questions.length) {
+      _step = 0;
     }
 
     _addUserMessage(text);
@@ -319,6 +323,8 @@ class _ConciergeChatScreenState extends State<ConciergeChatScreen> {
   }
 
   void _startEditing(int index) {
+    if (index < 0 || index >= _questions.length) return;
+
     setState(() {
       _editingIndex = index;
       _showReviewCard = false;
