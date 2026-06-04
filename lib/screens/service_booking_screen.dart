@@ -143,23 +143,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     }
   }
 
-  String _getIconName(String type) {
-    switch (type) {
-      case 'shuttle':
-        return 'car';
-      case 'tours':
-        return 'map';
-      case 'companion':
-        return 'users';
-      case 'dining':
-        return 'utensilsCrossed';
-      case 'flights':
-        return 'plane';
-      default:
-        return 'sparkles';
-    }
-  }
-
   List<int> _getGradient(String type) {
     switch (type) {
       case 'shuttle':

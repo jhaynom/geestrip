@@ -194,17 +194,6 @@ class PaymentService {
     return await verifyPayment(reference);
   }
 
-  Future<bool> _updatePaymentStatus(String reference, String status) async {
-    try {
-      await _client
-          .from('payments')
-          .update({'status': status}).eq('reference', reference);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   // ─── PROCESS PAYMENT FOR BOOKING ───
   Future<void> processBookingPayment({
     required String email,

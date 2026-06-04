@@ -44,7 +44,10 @@ class PushNotificationService {
       requestSoundPermission: true,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      settings: const InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      ),
       onDidReceiveNotificationResponse: (response) {
         // Handle notification tap - navigate to relevant screen
         print('[FCM] Notification tapped: ${response.payload}');
@@ -94,11 +97,16 @@ class PushNotificationService {
     );
     const iosDetails = DarwinNotificationDetails(
         presentAlert: true, presentBadge: true, presentSound: true);
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
     await _localNotifications.show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      const NotificationDetails(android: androidDetails, iOS: iosDetails),
+      id: DateTime.now().millisecond,
+      title: title,
+      body: body,
+      payload: null,
+      notificationDetails: details,
     );
   }
 
