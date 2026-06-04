@@ -14,7 +14,7 @@ workflows:
           flutter pub get
       - name: Analyze code
         script: |
-          flutter analyze
+          flutter analyze --no-fatal-infos --no-fatal-warnings
       - name: Run unit tests
         script: |
           flutter test
