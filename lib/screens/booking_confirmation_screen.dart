@@ -20,20 +20,35 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
   bool _paymentSuccess = false;
   String _reference = '';
   PaymentTier _selectedTier = PaymentTier.quickReserve;
+  SubscriptionPlan _selectedSubscriptionPlan = SubscriptionPlan.explorer;
   final _service = PaymentService();
   String _paymentReference = '';
   late TextEditingController _emailController;
+
+  bool get _isSubscription => widget.bookingData['type'] == 'subscription';
+
+  SubscriptionPlan _planFromName(String? planName) {
+    if (planName == null || planName.isEmpty) return SubscriptionPlan.explorer;
+    try {
+      return SubscriptionPlan.values
+          .firstWhere((plan) => plan.name == planName);
+    } catch (_) {
+      return SubscriptionPlan.explorer;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _reference = _service.generateReference();
     _emailController = TextEditingController();
+    _selectedSubscriptionPlan =
+        _planFromName(widget.bookingData['plan']?.toString() ?? 'explorer');
   }
 
   @override
   void dispose() {
-    _emailController?.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -44,7 +59,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     });
 
     // require email for payment receipt
-    final email = (_emailController?.text ?? '').trim();
+    final email = (_emailController.text).trim();
     if (email.isEmpty || !email.contains('@')) {
       setState(() {
         _isProcessing = false;
@@ -144,11 +159,48 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     }
   }
 
+  void _initiateSubscriptionPayment() async {
+    setState(() {
+      _isProcessing = true;
+    });
+
+    final email = (_emailController.text).trim();
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() {
+        _isProcessing = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enter a valid email address to proceed')));
+      return;
+    }
+
+    await _service.processSubscriptionPayment(
+      email: email,
+      plan: _selectedSubscriptionPlan,
+      onSuccess: () {
+        if (!mounted) return;
+        setState(() {
+          _isProcessing = false;
+          _paymentSuccess = true;
+        });
+      },
+      onError: () {
+        if (!mounted) return;
+        setState(() {
+          _isProcessing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Subscription payment could not be completed.')));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hotelName = widget.bookingData['name'] ?? 'Hotel';
-    final hotelDetail = widget.bookingData['detail'] ?? '';
-    final hotelPrice = widget.bookingData['price'] ?? '';
+    final itemName = widget.bookingData['name'] ?? 'Service';
+    final itemDetail = widget.bookingData['detail'] ?? '';
+    final itemPrice = widget.bookingData['price'] ?? '';
+    final planPrice = _service.getPlanPrice(_selectedSubscriptionPlan);
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -199,20 +251,28 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                         color: Colors.white, size: 48)),
               ),
               const SizedBox(height: 32),
-              const Text('Confirm Hotel Reservation',
-                  style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary),
-                  textAlign: TextAlign.center),
+              Text(
+                _isSubscription
+                    ? 'Confirm Subscription'
+                    : 'Confirm Hotel Reservation',
+                style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 8),
-              const Text('Choose how you\'d like to reserve',
-                  style:
-                      TextStyle(fontSize: 15, color: AppColors.textSecondary),
-                  textAlign: TextAlign.center),
+              Text(
+                _isSubscription
+                    ? 'Complete your plan purchase with secure payment'
+                    : 'Choose how you\'d like to reserve',
+                style: const TextStyle(
+                    fontSize: 15, color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 24),
 
-              // Hotel info card
+              // Info card
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -236,7 +296,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Text(hotelName,
+                        Text(itemName,
                             style: const TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
@@ -247,13 +307,16 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                               size: 13, color: AppColors.textMuted),
                           const SizedBox(width: 4),
                           Expanded(
-                              child: Text(hotelDetail,
+                              child: Text(itemDetail,
                                   style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textMuted)))
                         ]),
                         const SizedBox(height: 4),
-                        Text('Hotel rate: $hotelPrice',
+                        Text(
+                            _isSubscription
+                                ? 'Subscription: $planPrice'
+                                : 'Hotel rate: $itemPrice',
                             style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -263,11 +326,15 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
               ),
 
               const SizedBox(height: 24),
-              const Text('Select Reservation Type',
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary)),
+              Text(
+                _isSubscription
+                    ? 'Subscription details'
+                    : 'Select Reservation Type',
+                style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary),
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: _emailController,
@@ -283,24 +350,47 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
               const SizedBox(height: 12),
               const SizedBox(height: 12),
 
-              // Tier options
-              _TierOption(
-                tier: PaymentTier.quickReserve,
-                isSelected: _selectedTier == PaymentTier.quickReserve,
-                onTap: () => _initiatePayment(PaymentTier.quickReserve),
-              ),
-              const SizedBox(height: 10),
-              _TierOption(
-                tier: PaymentTier.premiumReserve,
-                isSelected: _selectedTier == PaymentTier.premiumReserve,
-                onTap: () => _initiatePayment(PaymentTier.premiumReserve),
-              ),
-              const SizedBox(height: 10),
-              _TierOption(
-                tier: PaymentTier.fullService,
-                isSelected: _selectedTier == PaymentTier.fullService,
-                onTap: () => _initiatePayment(PaymentTier.fullService),
-              ),
+              if (_isSubscription) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _initiateSubscriptionPayment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18)),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        'Pay $planPrice',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                _TierOption(
+                  tier: PaymentTier.quickReserve,
+                  isSelected: _selectedTier == PaymentTier.quickReserve,
+                  onTap: () => _initiatePayment(PaymentTier.quickReserve),
+                ),
+                const SizedBox(height: 10),
+                _TierOption(
+                  tier: PaymentTier.premiumReserve,
+                  isSelected: _selectedTier == PaymentTier.premiumReserve,
+                  onTap: () => _initiatePayment(PaymentTier.premiumReserve),
+                ),
+                const SizedBox(height: 10),
+                _TierOption(
+                  tier: PaymentTier.fullService,
+                  isSelected: _selectedTier == PaymentTier.fullService,
+                  onTap: () => _initiatePayment(PaymentTier.fullService),
+                ),
+              ],
             ],
 
             // ─── PROCESSING ───
@@ -364,19 +454,27 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                     .shake(duration: 400.ms),
               ),
               const SizedBox(height: 32),
-              const Text('Reservation Confirmed! 🎉',
-                  style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary),
-                  textAlign: TextAlign.center),
+              Text(
+                _isSubscription
+                    ? 'Subscription Confirmed! 🎉'
+                    : 'Reservation Confirmed! 🎉',
+                style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 8),
-              const Text('Your hotel has been reserved successfully.',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500),
-                  textAlign: TextAlign.center),
+              Text(
+                _isSubscription
+                    ? 'Your plan is now active and ready for your next trip.'
+                    : 'Your hotel has been reserved successfully.',
+                style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 32),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -388,38 +486,69 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                           color: Colors.black.withOpacity(0.04), blurRadius: 16)
                     ]),
                 child: Column(children: [
-                  _DetailRow(label: 'Hotel', value: hotelName),
-                  const SizedBox(height: 12),
-                  _DetailRow(label: 'Room', value: hotelDetail),
-                  const SizedBox(height: 12),
-                  _DetailRow(label: 'Hotel Rate', value: hotelPrice),
+                  _DetailRow(
+                      label: _isSubscription ? 'Plan' : 'Hotel',
+                      value: itemName),
                   const SizedBox(height: 12),
                   _DetailRow(
-                      label: 'Reservation Fee',
-                      value: _service.getTierPrice(_selectedTier)),
-                  const Divider(height: 24),
-                  _DetailRow(label: 'Reference', value: _reference, bold: true),
+                      label: _isSubscription ? 'Details' : 'Room',
+                      value: itemDetail),
+                  const SizedBox(height: 12),
+                  _DetailRow(
+                      label: _isSubscription ? 'Price' : 'Hotel Rate',
+                      value: _isSubscription ? planPrice : itemPrice),
+                  const SizedBox(height: 12),
+                  if (!_isSubscription) ...[
+                    _DetailRow(
+                        label: 'Reservation Fee',
+                        value: _service.getTierPrice(_selectedTier)),
+                    const Divider(height: 24),
+                    _DetailRow(
+                        label: 'Reference', value: _reference, bold: true),
+                  ] else ...[
+                    _DetailRow(label: 'Status', value: 'Active', bold: true),
+                  ],
                 ]),
               ),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: AppColors.accentBlueLight,
-                    borderRadius: BorderRadius.circular(12)),
-                child: Row(children: [
-                  const Icon(LucideIcons.info,
-                      color: AppColors.primary, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                      child: Text(
-                          'Show reference $_reference at check-in. Pay balance at the hotel after inspecting your room.',
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w500))),
-                ]),
-              ),
+              if (!_isSubscription)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                      color: AppColors.accentBlueLight,
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Row(children: [
+                    const Icon(LucideIcons.info,
+                        color: AppColors.primary, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(
+                            'Show reference $_reference at check-in. Pay balance at the hotel after inspecting your room.',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w500))),
+                  ]),
+                ),
+              if (_isSubscription)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                      color: AppColors.accentGreenLight,
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Row(children: [
+                    const Icon(LucideIcons.info,
+                        color: AppColors.success, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(
+                            'Your subscription is active and can be used immediately for new bookings.',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.success,
+                                fontWeight: FontWeight.w500))),
+                  ]),
+                ),
               const SizedBox(height: 32),
               Row(children: [
                 Expanded(

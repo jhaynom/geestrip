@@ -26,7 +26,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
   Future<List<Map<String, dynamic>>> _loadServices() async {
     final entries = await ContentService().fetchServices();
     if (entries.isEmpty) return _getServices();
-    return entries.map((entry) {
+
+    final services = entries.map((entry) {
       final metadata = entry['metadata'];
       final gradient = metadata is Map && metadata['gradient'] is List
           ? (metadata['gradient'] as List).map((item) {
@@ -48,9 +49,16 @@ class _ServicesScreenState extends State<ServicesScreen> {
         'gradient': gradient,
         'price': metadata is Map ? metadata['price'] : null,
         'tag': metadata is Map ? metadata['tag'] : null,
-        'category': entry['section'] ?? widget.category,
+        'category': metadata is Map && metadata['category'] is String
+            ? metadata['category'] as String
+            : widget.category,
       };
     }).toList();
+
+    if (widget.category == 'all') return services;
+    return services
+        .where((service) => service['category'] == widget.category)
+        .toList();
   }
 
   @override

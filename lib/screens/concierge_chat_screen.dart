@@ -280,7 +280,9 @@ class _ConciergeChatScreenState extends State<ConciergeChatScreen> {
     final text = _inputController.text.trim();
     if (text.isEmpty) return;
 
-    if (_editingIndex != null && _editingIndex! >= 0 && _editingIndex! < _questions.length) {
+    if (_editingIndex != null &&
+        _editingIndex! >= 0 &&
+        _editingIndex! < _questions.length) {
       final key = _questions[_editingIndex!]['key'];
       _answers[key] = text;
       _addUserMessage(text);
